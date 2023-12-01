@@ -1,19 +1,29 @@
 package main;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
 
+import Respository.TeamRespository;
+import Respository.UserRespository;
+import utility.Connection;
+
 public class Main {
     private int idx;
     private Scanner sc = new Scanner(System.in);
-    private String filePathTeams = "C:\\Kuliah Sem 3\\OOP\\TUgas Akhir Dan GSLC\\GSLCAssignment_Group1-master\\src\\teams.csv";
-    private String filePathUser = "C:\\Kuliah Sem 3\\OOP\\TUgas Akhir Dan GSLC\\GSLCAssignment_Group1-master\\src\\user.csv";
+    private String filePathTeams = "src/teams.csv";
+    private String filePathUser = "src/user.csv";
+	UserRespository userRespository = new UserRespository("src/user.csv");
+    TeamRespository teamRespository = new TeamRespository("src/teams.csv");
+    	
 
-    public Main() {
+	public Main() throws IOException {
+		Connection conn = Connection.getInstance(filePathTeams);
+		BufferedReader reader = conn.openFile();
+		// conn.closeFile(reader);
+
         idx = getTeamCount(filePathTeams);
         mainMenu();
         sc.close();
@@ -53,15 +63,16 @@ public class Main {
             System.out.print("add nim: ");
             nim = sc.nextLine();
 
-            // Automatically detect the team ID when adding a user
+            
             System.out.print("add team name: ");
             String teamName = sc.nextLine();
             idTeam = getTeamIdByName(teamName);
 
             if (idTeam == null) {
-                System.out.println("Error: Team not found. Please create the team first.");
+                System.out.println("Error: Team not found.");
+                writeTeam();
             } else if (isTeamFull(idTeam)) {
-                System.out.println("Error: Team is full. Cannot add more users to this team.");
+                System.out.println("Error: Team is full.");
             } else {
                 writer.write(nim + "," + nama + "," + idTeam + "\n");
                 System.out.println("User Created! (ID: " + idx + ")");
@@ -129,17 +140,57 @@ public class Main {
         } while (input != 0);
     }
 
-    public void show(String filePath) {
-        try (Scanner scanner = new Scanner(new File(filePath))) {
-            scanner.useDelimiter(",");
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                System.out.println(line);
-            }
-        } catch (IOException e) {
-            System.err.println("Error reading data: " + e.getMessage());
+    public void showMenu() {
+    System.out.println("Which table to show? 1. User, 2. Team.");
+    int tableChoice = sc.nextInt();
+    sc.nextLine();  
+
+    System.out.println("Want to filter by condition? 1. Yes, 2. No.");
+    int filterChoice = sc.nextInt();
+    sc.nextLine();  
+
+    String columnName = null;
+    String operator = null;
+    String keyword = null;
+
+    if (filterChoice == 1) {
+        System.out.println("Add condition, separate by semicolon.");
+        String condition = sc.nextLine();
+
+        // Split the condition by semicolon
+        String[] conditionParts = condition.split(";");
+        if (conditionParts.length == 3) {
+            columnName = conditionParts[0].trim();
+            operator = conditionParts[1].trim();
+            keyword = conditionParts[2].trim();
+        } else {
+            System.out.println("Invalid condition format. Please enter a valid condition.");
+            return;
         }
     }
+
+    // Now you have columnName, operator, and keyword.
+    // You can use these in your repository method call.
+    // For example:
+    // userRepository.find(columnName, new String[]{operator, keyword}, false, null, conn);
+
+    switch (tableChoice) {
+        case 1:
+            // Show users
+            System.out.println("Users:");
+            userRespository.show(columnName, operator, keyword);
+            break;
+        case 2:
+            // Show teams
+            System.out.println("Teams:");
+            teamRespository.show(columnName, operator, keyword);
+            break;
+        default:
+            System.out.println("Invalid table choice. Please enter 1 or 2.");
+            break;
+    }
+}
+
 
     public void mainMenu() {
         int input = 0;
@@ -159,9 +210,9 @@ public class Main {
                         break;
                     case 3:
                         System.out.println("Teams:");
-                        show(filePathTeams);
+                        showMenu();
                         System.out.println("Users:");
-                        show(filePathUser);
+                        showMenu();
                         break;
                     case 4:
                         System.out.println("Exiting program. Goodbye!");
@@ -176,8 +227,7 @@ public class Main {
         } while (input != 4);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         new Main();
     }
 }
-
