@@ -1,4 +1,6 @@
-package main;import java.io.BufferedReader;
+package main;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -47,9 +49,9 @@ public class Main {
 
         try (FileWriter writer = new FileWriter(filePathUser, true)) {
             System.out.print("add name: ");
-            nim = sc.nextLine();
-            System.out.print("add nim: ");
             nama = sc.nextLine();
+            System.out.print("add nim: ");
+            nim = sc.nextLine();
 
             // Automatically detect the team ID when adding a user
             System.out.print("add team name: ");
@@ -178,3 +180,4 @@ public class Main {
         new Main();
     }
 }
+
